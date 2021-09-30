@@ -1,0 +1,63 @@
+10 REM Test printing to an LCD character display
+20 LET CMD=32
+30 LET CHR=33
+40 LET C=32    : REM Character to output
+50 DIM S$(20)  : REM String to output
+60 LET L=1     : REM line number
+
+50 GOSUB 2000
+
+100 S$="RC2014 8bit Computer"
+110 GOSUB 4000
+120 L = 2
+130 S$="29752 Bytes free"
+140 GOSUB 5000
+150 GOSUB 4000
+160 L = 3
+170 S$="READY"
+180 GOSUB 5000
+190 GOSUB 4000
+200 L = 4
+210 S$=">"
+220 GOSUB 5000
+230 GOSUB 4000
+999 END
+
+1000 REM Wait for LCD to be not busy
+1010 IF INP(CMD) >= 128 THEN GOTO 1010
+1999 RETURN
+
+2000 REM Initialize the display
+2005 GOSUB 1000
+2010 OUT CMD,56
+2020 GOSUB 1000
+2030 OUT CMD,15 : REM Turn on the display and cursor
+2040 GOSUB 1000
+2050 OUT CMD,6  : REM Set mode to increment and move
+2060 GOSUB 1000
+2070 OUT CMD,1  : REM Clear the screen
+2080 GOSUB 1000
+2090 OUT CMD,2  : REM Move cursor home
+2999 RETURN
+
+3000 REM Send character in C to the LCD
+3010 GOSUB 1000
+3020 OUT CHR,C
+3999 RETURN
+
+4000 REM Output the string in S$ to the LCD
+4010 FOR I = 1 TO LEN(S$)
+4020 C=ASC(MID$(S$,I,1))
+4030 GOSUB 3000
+4040 NEXT I
+4999 RETURN
+
+5000 REM Go to line number in L
+5010 LN=128
+5020 IF L = 1 THEN GOTO 5100
+5030 IF L = 2 THEN LN=192 : GOTO 5100
+5040 IF L = 3 THEN LN=148 : GOTO 5100
+5050 IF L = 4 THEN LN=212
+5100 GOSUB 1000
+5110 OUT CMD,LN
+5999 RETURN
