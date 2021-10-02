@@ -12,7 +12,7 @@ git config core.autocrlf input
 Run the docker container.
 
 ```sh
-docker run --rm -v ${PWD}:src -w src -it rprouse/asm-dev
+docker run --rm -v ${PWD}:/src -w /src -it rprouse/asm-dev
 ```
 
 ### Compile using SjASMPlus
@@ -20,7 +20,7 @@ docker run --rm -v ${PWD}:src -w src -it rprouse/asm-dev
 Compile a single file at the command line,
 
 ```sh
-sjasmplus lcdtest.asm --lst
+sjasmplus lcdtest.asm --lst --raw=lcdtest.com
 ```
 
 ### Compile using RASM

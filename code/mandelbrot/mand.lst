@@ -1,0 +1,445 @@
+# file opened: mand.asm
+  1   0000              ; Mandelbrot for CP/M
+  2   0000              ; This version uses VT100 escape codes
+  3   0000              ; (clear screen)
+  4   0000
+  5   0000                 org $100
+  6   0100
+  7   0100              start:
+  8   0100 C3 A1 02        jp init
+  9   0103
+ 10   0103                 include "mandelbrot.asm"
+# file opened: mandelbrot.asm
+  1+  0103                 include "fixedpt.asm"
+# file opened: fixedpt.asm
+  1++ 0103              ; FP Registers:
+  2++ 0103              ;  FP_A: BC
+  3++ 0103              ;  FP_B: DE
+  4++ 0103              ;  FP_C: HL
+  5++ 0103              ;  FP_R: (IX)
+  6++ 0103
+  7++ 0103              fp_remainder:
+  8++ 0103 00 00           dw 0
+  9++ 0105
+ 10++ 0105              fp_i: ; loop index
+ 11++ 0105 00              db 0
+ 12++ 0106
+ 13++ 0106              fp_scratch:
+ 14++ 0106 00 00           dw 0
+ 15++ 0108
+ 16++ 0108              FP_LDA_BYTE:	MACRO source
+ 17++ 0108 ~                  ld b,source
+ 18++ 0108 ~                  ld c,0
+ 19++ 0108                 ENDM
+ 20++ 0108
+ 21++ 0108              FP_LDB_BYTE:	MACRO source
+ 22++ 0108 ~                  ld d,source
+ 23++ 0108 ~                  ld e,0
+ 24++ 0108                 ENDM
+ 25++ 0108
+ 26++ 0108              FP_LDA_BYTE_IND:	MACRO address
+ 27++ 0108 ~                  ld a,(address)
+ 28++ 0108 ~                  ld b,a
+ 29++ 0108 ~                  ld c,0
+ 30++ 0108                 ENDM
+ 31++ 0108
+ 32++ 0108              FP_LDB_BYTE_IND:	MACRO address
+ 33++ 0108 ~                  ld a,(address)
+ 34++ 0108 ~                  ld d,a
+ 35++ 0108 ~                  ld e,0
+ 36++ 0108                 ENDM
+ 37++ 0108
+ 38++ 0108              FP_LDA:	MACRO source
+ 39++ 0108 ~                  ld bc,source
+ 40++ 0108                 ENDM
+ 41++ 0108
+ 42++ 0108              FP_LDB:	MACRO source
+ 43++ 0108 ~                  ld de,source
+ 44++ 0108                 ENDM
+ 45++ 0108
+ 46++ 0108              FP_LDA_IND:	MACRO address
+ 47++ 0108 ~                  ld bc,(address)
+ 48++ 0108                 ENDM
+ 49++ 0108
+ 50++ 0108              FP_LDB_IND:	MACRO address
+ 51++ 0108 ~                  ld de,(address)
+ 52++ 0108                 ENDM
+ 53++ 0108
+ 54++ 0108              FP_STC:	MACRO dest
+ 55++ 0108 ~                  ld (dest),hl
+ 56++ 0108                 ENDM
+ 57++ 0108
+ 58++ 0108              fp_floor_byte: ; A = floor(FP_C)
+ 59++ 0108 7C              ld a,h
+ 60++ 0109 CB 7F           bit 7,a
+ 61++ 010B C8              ret z
+ 62++ 010C 3E 00           ld a,0
+ 63++ 010E BD              cp l
+ 64++ 010F 7C              ld a,h
+ 65++ 0110 C8              ret z
+ 66++ 0111 3D              dec a
+ 67++ 0112 C9              ret
+ 68++ 0113
+ 69++ 0113              fp_floor: ; FP_C = floor(FP_C)
+ 70++ 0113 CB 7C           bit 7,h
+ 71++ 0115 CA 1F 01        jp z,.zerofrac
+ 72++ 0118 3E 00           ld a,0
+ 73++ 011A BD              cp l
+ 74++ 011B CA 1F 01        jp z, .zerofrac
+ 75++ 011E 25              dec h
+ 76++ 011F              .zerofrac:
+ 77++ 011F 2E 00           ld l,0
+ 78++ 0121 C9              ret
+ 79++ 0122
+ 80++ 0122              FP_TCA:	MACRO ; FP_A = FP_C
+ 81++ 0122 ~                  ld b,h
+ 82++ 0122 ~                  ld c,l
+ 83++ 0122                 ENDM
+ 84++ 0122
+ 85++ 0122              FP_TCB:	MACRO ; FP_B = FP_C
+ 86++ 0122 ~                  ld d,h
+ 87++ 0122 ~                  ld e,l
+ 88++ 0122                 ENDM
+ 89++ 0122
+ 90++ 0122              FP_SUBTRACT:	MACRO ; FP_C = FP_A - FP_B
+ 91++ 0122 ~                  ld h,b
+ 92++ 0122 ~                  ld l,c
+ 93++ 0122 ~                  or a
+ 94++ 0122 ~                  sbc hl,de
+ 95++ 0122                 ENDM
+ 96++ 0122
+ 97++ 0122              FP_ADD:	MACRO ; FP_C = FP_A + FP_B
+ 98++ 0122 ~                  ld h,b
+ 99++ 0122 ~                  ld l,c
+100++ 0122 ~                  add hl,de
+101++ 0122                 ENDM
+102++ 0122
+103++ 0122              fp_divide: REPT 1 ; FP_C = FP_A / FP_B; FP_REM = FP_A % FP_B
+104++ 0122 D5          >   push de              ; preserve FP_B
+105++ 0123 CB 78       >   bit 7,b
+106++ 0125 C2 2D 01    >   jp nz,.abs_a         ; get |FP_A| if negative
+107++ 0128 60          >   ld h,b
+108++ 0129 69          >   ld l,c               ; FP_C = FP_A
+109++ 012A C3 33 01    >   jp .check_sign_b
+110++ 012D             >.abs_a:
+111++ 012D 21 00 00    >   ld hl,0
+112++ 0130 B7          >   or a
+113++ 0131 ED 42       >   sbc hl,bc            ; FP_C = |FP_A|
+114++ 0133             >.check_sign_b:
+115++ 0133 CB 7A       >   bit 7,d
+116++ 0135 CA 41 01    >   jp z,.shift_b
+117++ 0138 E5          >   push hl              ; preserve FP_C
+118++ 0139 21 00 00    >   ld hl,0
+119++ 013C B7          >   or a
+120++ 013D ED 52       >   sbc hl,de
+121++ 013F EB          >   ex de,hl             ; FP_B = |FP_B|
+122++ 0140 E1          >   pop hl               ; restore FP_C
+123++ 0141             >.shift_b:
+124++ 0141 5A          >   ld e,d
+125++ 0142 16 00       >   ld d,0
+126++ 0144 C5          >   push bc              ; preserve FP_A
+127++ 0145 D5          >   push de              ; copy FP_B
+128++ 0146 D9          >   exx                  ; to DE' register
+129++ 0147 D1          >   pop de
+130++ 0148 21 00 00    >   ld hl,0              ; FP_R in HL' register
+131++ 014B D9          >   exx
+132++ 014C 06 10       >   ld b,16
+133++ 014E             >.loop1:
+134++ 014E 29          >   add hl,hl            ; Shift hi bit of FP_C into REM
+135++ 014F D9          >   exx                  ; switch to alternative registers set
+136++ 0150 ED 6A       >   adc hl,hl            ; 16-bit left shift
+137++ 0152 7D          >   ld a,l
+138++ 0153 93          >   sub e                ; trial subtraction
+139++ 0154 4F          >   ld c,a
+140++ 0155 7C          >   ld a,h
+141++ 0156 9A          >   sbc a,d
+142++ 0157 DA 5F 01    >   jp c,.loop2          ; Did subtraction succeed?
+143++ 015A 69          >   ld l,c               ; if yes, save it
+144++ 015B 67          >   ld h,a
+145++ 015C D9          >   exx                  ; switch to primary registers set
+146++ 015D 2C          >   inc l                ; and record a 1 in the quotient
+147++ 015E D9          >   exx                  ; switch to alternative registers set
+148++ 015F             >.loop2:
+149++ 015F D9          >   exx                  ; switch to primary registers set
+150++ 0160 10 EC       >   djnz .loop1          ; decrement register B and loop while B>0
+151++ 0162 C1          >   pop bc               ; restore FP_A
+152++ 0163 D1          >   pop de               ; restore FP_B
+153++ 0164 CB 7A       >   bit 7,d
+154++ 0166 C2 6F 01    >   jp nz,.check_cancel
+155++ 0169 CB 78       >   bit 7,b
+156++ 016B C8          >   ret z
+157++ 016C C3 72 01    >   jp .negative
+158++ 016F             >.check_cancel:
+159++ 016F CB 78       >   bit 7,b
+160++ 0171 C0          >   ret nz
+161++ 0172             >.negative:
+162++ 0172 C5          >   push bc
+163++ 0173 44          >   ld b,h
+164++ 0174 4D          >   ld c,l
+165++ 0175 21 00 00    >   ld hl,0
+166++ 0178 B7          >   or a
+167++ 0179 ED 42       >   sbc hl,bc
+168++ 017B C1          >   pop bc
+169++ 017C C9          >   ret
+170++ 017D              ENDR
+171++ 017D
+172++ 017D              fp_multiply: REPT 1 ; FP_C = FP_A * FP_B; FP_R overflow
+173++ 017D             >;   LOCAL .check_sign_b
+174++ 017D             >;   LOCAL .loop1
+175++ 017D             >;   LOCAL .loop2
+176++ 017D             >;   LOCAL .check_cancel
+177++ 017D             >;   LOCAL .negative
+178++ 017D C5          >   push bc              ; preserve FP_A
+179++ 017E D5          >   push de              ; preserve FP_B
+180++ 017F CB 78       >   bit 7,b
+181++ 0181 CA 8C 01    >   jp z,.check_sign_b
+182++ 0184 21 00 00    >   ld hl,0
+183++ 0187 B7          >   or a
+184++ 0188 ED 42       >   sbc hl,bc
+185++ 018A             >   FP_TCA               ; FP_A = |FP_A|
+185++ 018A 44          >      ld b,h
+185++ 018B 4D          >      ld c,l
+186++ 018C             >.check_sign_b:
+187++ 018C CB 7A       >   bit 7,d
+188++ 018E CA 99 01    >   jp z,.init_c
+189++ 0191 21 00 00    >   ld hl,0
+190++ 0194 B7          >   or a
+191++ 0195 ED 52       >   sbc hl,de
+192++ 0197             >   FP_TCB               ; FP_B = |FP_B|
+192++ 0197 54          >      ld d,h
+192++ 0198 5D          >      ld e,l
+193++ 0199             >.init_c:
+194++ 0199 21 00 00    >   ld hl,0              ; fp_scratch in register H'
+195++ 019C D9          >   exx                  ; fp_remainder in register L'
+196++ 019D 21 00 00    >   ld hl,0
+197++ 01A0 D9          >   exx                  ; switch to primary registers set
+198++ 01A1 3E 10       >   ld a,16              ; fp_i in register A
+199++ 01A3             >.loop1:
+200++ 01A3 CB 3A       >   srl d
+201++ 01A5 CB 1B       >   rr e
+202++ 01A7 D2 AB 01    >   jp nc,.loop2
+203++ 01AA 09          >   add hl,bc
+204++ 01AB             >.loop2:
+205++ 01AB CB 1C       >   rr h
+206++ 01AD CB 1D       >   rr l
+207++ 01AF D9          >   exx                  ; switch to alternative registers set
+208++ 01B0 CB 1C       >   rr h
+209++ 01B2 CB 1D       >   rr l
+210++ 01B4 D9          >   exx                  ; switch to primary registers set
+211++ 01B5 3D          >   dec a
+212++ 01B6 C2 A3 01    >   jp nz,.loop1
+213++ 01B9 7D          >   ld a,l
+214++ 01BA D9          >   exx                  ; switch to alternative registers set
+215++ 01BB 5F          >   ld e,a               ; we don't values in primary set anymore
+216++ 01BC 16 00       >   ld d,0               ; so will use alternative set as primary
+217++ 01BE 06 08       >   ld b,8            ; register B as loop counter
+218++ 01C0             >.loop3:
+219++ 01C0 CB 3A       >   srl d
+220++ 01C2 CB 1B       >   rr e
+221++ 01C4 CB 1C       >   rr h
+222++ 01C6 CB 1D       >   rr l
+223++ 01C8 10 F6       >   djnz .loop3       ; decrement and loop
+224++ 01CA D1          >   pop de            ; restore FP_B
+225++ 01CB C1          >   pop bc            ; restore FP_A
+226++ 01CC CB 7A       >   bit 7,d
+227++ 01CE C2 D7 01    >   jp nz,.check_cancel
+228++ 01D1 CB 78       >   bit 7,b
+229++ 01D3 C8          >   ret z
+230++ 01D4 C3 DA 01    >   jp .negative
+231++ 01D7             >.check_cancel:
+232++ 01D7 CB 78       >   bit 7,b
+233++ 01D9 C0          >   ret nz
+234++ 01DA             >.negative:
+235++ 01DA C5          >   push bc           ; preserve FP_A
+236++ 01DB 44          >   ld b,h
+237++ 01DC 4D          >   ld c,l
+238++ 01DD 21 00 00    >   ld hl,0
+239++ 01E0 B7          >   or a
+240++ 01E1 ED 42       >   sbc hl,bc
+241++ 01E3 C1          >   pop bc            ; restore FP_A
+242++ 01E4 C9          >   ret
+243++ 01E5              ENDR
+# file closed: fixedpt.asm
+  2+  01E5
+  3+  01E5              ;   IFNUSED MAND_XMIN
+  4+  01E5              MAND_XMIN   EQU $FD80 ; -2.5
+  5+  01E5              ;   ENDIF
+  6+  01E5              ;   IFNUSED MAND_XMAX
+  7+  01E5              MAND_XMAX   EQU $0380 ; 3.5
+  8+  01E5              ;   ENDIF
+  9+  01E5              ;   IFNUSED MAND_YMIN
+ 10+  01E5              MAND_YMIN   EQU $FF00 ; -1
+ 11+  01E5              ;   ENDIF
+ 12+  01E5              ;   IFNUSED MAND_YMAX
+ 13+  01E5              MAND_YMAX   EQU $0200 ; 2
+ 14+  01E5              ;   ENDIF
+ 15+  01E5
+ 16+  01E5              ;   IFNUSED MAND_WIDTH
+ 17+  01E5              MAND_WIDTH  EQU 32
+ 18+  01E5              ;   ENDIF
+ 19+  01E5              ;   IFNUSED MAND_HEIGHT
+ 20+  01E5              MAND_HEIGHT EQU 22
+ 21+  01E5              ;   ENDIF
+ 22+  01E5              ;   IFNUSED MAND_MAX_IT
+ 23+  01E5              MAND_MAX_IT EQU 15
+ 24+  01E5              ;   ENDIF
+ 25+  01E5
+ 26+  01E5 00           mand_i:        db 0
+ 27+  01E6
+ 28+  01E6 00 00        mand_x0:       dw 0
+ 29+  01E8 00 00        mand_y0:       dw 0
+ 30+  01EA 00 00        mand_x:        dw 0
+ 31+  01EC 00 00        mand_y:        dw 0
+ 32+  01EE 00 00        mand_x2:       dw 0
+ 33+  01F0 00 00        mand_y2:       dw 0
+ 34+  01F2 00 00        mand_xtemp:    dw 0
+ 35+  01F4
+ 36+  01F4              mand_get:   ; Input:
+ 37+  01F4                          ;  B,C - X,Y bitmap coordinates
+ 38+  01F4                          ; Output: A - # iterations executed (0 to MAND_MAX_IT-1)
+ 39+  01F4 C5              push bc                    ; preserve BC (X,Y)
+ 40+  01F5 0E 00           ld c,0                     ; BC = X
+ 41+  01F7 16 20           ld d,MAND_WIDTH            ; DE = width
+ 42+  01F9 1E 00           ld e,0
+ 43+  01FB CD 22 01        call fp_divide             ; HL = X/width
+ 44+  01FE 4D              ld c,l                     ; BC = X/width
+ 45+  01FF 44              ld b,h
+ 46+  0200 11 80 03        ld de,MAND_XMAX            ; DE = Xmax
+ 47+  0203 CD 7D 01        call fp_multiply           ; HL = X/width*Xmax
+ 48+  0206 11 80 FD        ld de,MAND_XMIN            ; DE = Xmin
+ 49+  0209 19              add hl,de                  ; HL = X/width*Xmax - Xmin
+ 50+  020A 22 E6 01        ld (mand_x0),hl            ; X0 = HL
+ 51+  020D C1              pop bc                     ; retrieve X,Y from stack
+ 52+  020E
+ 53+  020E C5              push bc                    ; put X,Y back on stack
+ 54+  020F 41              ld b,c
+ 55+  0210 0E 00           ld c,0                     ;BC = Y
+ 56+  0212 11 00 02        ld de,MAND_YMAX            ;DE = Ymax
+ 57+  0215 CD 7D 01        call fp_multiply           ;HL = Y*Ymax
+ 58+  0218 4D              ld c,l
+ 59+  0219 44              ld b,h                     ; BC = Y*Ymax
+ 60+  021A 16 16           ld d,MAND_HEIGHT           ; DE = height
+ 61+  021C 1E 00           ld e,0
+ 62+  021E CD 22 01        call fp_divide             ; HL = Y*Ymax/height
+ 63+  0221 11 00 FF        ld de,MAND_YMIN            ; DE = Ymin
+ 64+  0224 19              add hl,de                  ; HL = Y*Ymax/height + Y
+ 65+  0225 22 E8 01        ld (mand_y0),hl            ; Y0 = HL
+ 66+  0228
+ 67+  0228 21 00 00        ld hl,0
+ 68+  022B 22 EA 01        ld (mand_x),hl             ; X = 0
+ 69+  022E 22 EC 01        ld (mand_y),hl             ; Y = 0
+ 70+  0231 AF              xor a                      ; I = 0
+ 71+  0232              .loopi:
+ 72+  0232 F5              push af                    ; A = I
+ 73+  0233 ED 4B EA 01     ld bc,(mand_x)             ; BC = X
+ 74+  0237 50              ld d,b
+ 75+  0238 59              ld e,c                     ; DE = X
+ 76+  0239 CD 7D 01        call fp_multiply           ; HL = X^2
+ 77+  023C E5              push hl                    ; put X^2 on stack
+ 78+  023D ED 4B EC 01     ld bc,(mand_y)             ; BC = Y
+ 79+  0241 50              ld d,b
+ 80+  0242 59              ld e,c                     ; DE = Y
+ 81+  0243 CD 7D 01        call fp_multiply           ; HL = Y^2
+ 82+  0246 D1              pop de                     ; DE = X^2
+ 83+  0247 D5              push de                    ; get X^2 from stack and put it back again
+ 84+  0248 E5              push hl                    ; HL = Y^2
+ 85+  0249 19              add hl,de                  ; HL = X^2+Y^2
+ 86+  024A C1              pop bc                     ; BC = Y^2
+ 87+  024B D1              pop de                     ; DE = X^2
+ 88+  024C 3E 04           ld a,4                     ; A = 4
+ 89+  024E 94              sub h                      ; A = 4 - int(X^2 + Y^2)
+ 90+  024F DA 88 02        jp c,.dec_i                ; if (4 - int(X^2 + Y^2) < 0)  -> exit
+ 91+  0252 C2 59 02        jp nz,.do_it               ; if (4 - int(X^2 + Y^2) != 0) -> do_it
+ 92+  0255 7D              ld a,l                     ; A = frac(X^2 + Y^2)
+ 93+  0256 B7              or a                       ; z-flag set if A == 0
+ 94+  0257 20 2F           jr nz,.dec_i               ; int(X^2 + Y^2) == 4  but frac(X^2 + Y^2) != 0 -> exit
+ 95+  0259              .do_it:                       ; we get here with c-flag always clear
+ 96+  0259 EB              ex de,hl                   ; HL = X^2
+ 97+  025A ED 42           sbc hl,bc                  ; HL = X^2 - Y^2
+ 98+  025C ED 5B E6 01     ld de,(mand_x0)            ; DE = X0
+ 99+  0260 19              add hl,de                  ; HL =  X^2 - Y^2 + X0
+100+  0261 E5              push hl                    ; Xtemp = HL
+101+  0262 ED 4B EA 01     ld bc,(mand_x)             ; BC = X
+102+  0266 11 00 02        ld de,$200                 ; DE = 2.0
+103+  0269 CD 7D 01        call fp_multiply           ; HL = 2*X
+104+  026C EB              ex de,hl                   ; DE = 2*X
+105+  026D ED 4B EC 01     ld bc,(mand_y)             ; BC = Y
+106+  0271 CD 7D 01        call fp_multiply           ; HL = 2*X*Y
+107+  0274 ED 5B E8 01     ld de,(mand_y0)            ; DE = Y0
+108+  0278 19              add hl,de                  ; HL = 2*X*Y + Y0
+109+  0279 22 EC 01        ld (mand_y),hl             ; Y = HL
+110+  027C E1              pop hl                     ; HL = Xtemp
+111+  027D 22 EA 01        ld (mand_x),hl             ; X = HL
+112+  0280 F1              pop af                     ; A = I
+113+  0281 3C              inc a                      ; A = I + 1
+114+  0282 FE 0F           cp MAND_MAX_IT             ; is A == maxI
+115+  0284 C2 32 02        jp nz,.loopi
+116+  0287 F5              push af                    ; need to push af on stack since there is another branch to .dec_i
+117+  0288              .dec_i:
+118+  0288 F1              pop af                     ; A = I
+119+  0289 3D              dec a                      ; A = I - 1
+120+  028A C1              pop bc                                                         ; restore BC (X,Y)
+121+  028B C9              ret
+# file closed: mandelbrot.asm
+ 11   028C
+ 12   028C 00           i_result: db 0
+ 13   028D
+ 14   028D              BDOS	EQU 5
+ 15   028D              COUT	EQU 2
+ 16   028D              PRINT	EQU 9
+ 17   028D
+ 18   028D 1B 5B 3F 32  cur_dis:db 27,'[?25l',27,'[H',27,'[J$'
+ 18   0291 35 6C 1B 5B
+ 18   0295 48 1B 5B 4A
+ 18   0299 24
+ 19   029A 1B 5B 3F 32  cur_ena:db 27,'[?25h$'
+ 19   029E 35 68 24
+ 20   02A1
+ 21   02A1
+ 22   02A1              init:
+ 23   02A1 11 8D 02        ld de,cur_dis
+ 24   02A4 0E 09           ld c, PRINT
+ 25   02A6 CD 05 00        call BDOS
+ 26   02A9
+ 27   02A9 01 00 00        ld bc,0              ; X = 0, Y = 0
+ 28   02AC
+ 29   02AC              .loopm:
+ 30   02AC CD F4 01        call mand_get
+ 31   02AF C6 20           add  a,' '
+ 32   02B1
+ 33   02B1 D9              exx
+ 34   02B2 5F              ld e,a
+ 35   02B3 D5              push de
+ 36   02B4 0E 02           ld c,COUT
+ 37   02B6 CD 05 00        call BDOS
+ 38   02B9 D1              pop de
+ 39   02BA 0E 02           ld c,COUT
+ 40   02BC CD 05 00        call BDOS
+ 41   02BF D9              exx
+ 42   02C0
+ 43   02C0              .loopm1:
+ 44   02C0 04              inc b                ; increment X
+ 45   02C1 3E 20           ld a,MAND_WIDTH
+ 46   02C3 B8              cp b
+ 47   02C4 C2 AC 02        jp nz,.loopm         ; loop until X = width
+ 48   02C7 06 00           ld b,0               ; X = 0
+ 49   02C9
+ 50   02C9 D9              exx
+ 51   02CA 1E 0D           ld e,13
+ 52   02CC 0E 02           ld c,COUT
+ 53   02CE CD 05 00        call BDOS
+ 54   02D1 1E 0A           ld e,10
+ 55   02D3 0E 02           ld c,COUT
+ 56   02D5 CD 05 00        call BDOS
+ 57   02D8 D9              exx
+ 58   02D9
+ 59   02D9 0C              inc c                ; increment Y
+ 60   02DA 3E 16           ld a,MAND_HEIGHT
+ 61   02DC B9              cp c
+ 62   02DD C2 AC 02        jp nz,.loopm         ; loop until Y = height
+ 63   02E0
+ 64   02E0 11 9A 02        ld de,cur_ena
+ 65   02E3 0E 09           ld c, PRINT
+ 66   02E5 CD 05 00        call BDOS
+ 67   02E8 C9              ret
+# file closed: mand.asm
