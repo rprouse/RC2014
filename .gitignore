@@ -1,3 +1,4 @@
 *.com
 *.bin
 *.lst
+!code/download.com/
