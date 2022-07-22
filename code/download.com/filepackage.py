@@ -2,15 +2,16 @@
 
 # Binary to CP/M file packager
 # Written for RC2014 computer by Marco Maccaferri
+# Updated to Python 3 by Rob
 # Based on documentation by Grant Searle
+
+from time import sleep
 
 import sys
 import glob
 import ntpath
 import getopt
 import serial
-
-from time import sleep
 
 cmd_delay = 0
 byte_delay = 0
@@ -22,15 +23,14 @@ def encodeFile(filename, device):
 
     name = ntpath.basename(filename).upper()
 
-    f = open(filename, "rb")
-    try:
+    with open(filename, "rb") as f:
         # command to create file
-        device.write ("A:DOWNLOAD %s%c%c" % (name, 13, 10))
+        device.write (f"A:DOWNLOAD {name}\r\n")
         device.flush()
         sleep(cmd_delay);
 
         # user selection
-        device.write ("U%d%c%c" % (user, 13, 10))
+        device.write (f"U{user}\r\n")
         device.flush()
         sleep(byte_delay);
 
@@ -43,18 +43,16 @@ def encodeFile(filename, device):
         checksum = 0
 
         # data stream
-        byte = f.read(1)
-        while byte != "":
-            device.write(byte.encode('hex').upper())
+        while (byte := f.read(1)):
+            device.write(byte.hex().upper())
             device.flush()
             length = length + 1
             checksum = checksum + ord(byte)
-            byte = f.read(1)
             sleep(byte_delay);
 
         # fill last sector, if required
-        if fill_ch <> -1:
-            while (length % 128) <> 0:
+        if fill_ch != -1:
+            while (length % 128) != 0:
                 device.write("%02X" % (fill_ch))
                 device.flush()
                 length = length + 1
@@ -64,15 +62,12 @@ def encodeFile(filename, device):
         # end data stream and checksum
         device.write(">%02X%02X" % (length % 256, checksum % 256))
 
-    finally:
-        f.close()
-
-    device.write ("%c%c" % (13, 10))
+    device.write ("\r\n")
     device.flush()
-    sleep(cmd_delay);
+    sleep(cmd_delay)
 
 def usage():
-    print("Usage: %s [-b n] [-c n] [-f n] [-p port] [-t n] [-u n] file1 [[file2] ... fileN]" % (sys.argv[0]))
+    print(f"Usage: {sys.argv[0]} [-b n] [-c n] [-f n] [-p port] [-t n] [-u n] file1 [[file2] ... fileN]")
     print("Where:")
     print("    -b - Set port baud rate to n (default 115200)")
     print("    -c - Set command delay to n ms. (default 0)")
@@ -109,7 +104,7 @@ for o, a in opts:
     if o == "-u":
         user = int(a)
 
-if port <> None:
+if port is not None:
     device = serial.Serial()
     device.port = port
     device.baudrate = baudrate
@@ -122,6 +117,5 @@ for x in args:
     for fn in glob.glob(x):
         encodeFile(fn, device)
 
-if port <> None:
+if port is not None:
     device.close()
-
