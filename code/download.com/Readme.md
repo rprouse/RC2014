@@ -16,7 +16,12 @@ ready to by copied and pasted into a terminal window. It also has options to
 write directly to the serial port, but I don't use that.
 
 Unfortunately Marco's script was written in Python 2.7 and doesn't run in 3.x so
-I updated it to use Python 3.8+.
+I updated it to use Python 3.8+. Note that the script requires that you have
+the serial module installed even if you are not using the serial. Install with
+
+```sh
+pip install serial
+```
 
 ## Example of use
 
