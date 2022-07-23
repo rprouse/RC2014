@@ -16,3 +16,7 @@ end_of_line = crlf
 
 [*.asm]
 indent_size = 4
+
+[Makefile]
+indent_style = tab
+indent_size = 4
