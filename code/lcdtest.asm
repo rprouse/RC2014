@@ -1,13 +1,16 @@
 ;********************
 ;Some simple test code to write commands and data to a
 ;character LCD display
+    org $100               ; CPM Program start address
+
+    jp main
+
     include "lcd.inc"
 ;
 ;Tested with the SjASMPlus assembler
 ; sjasmplus lcdtest.asm --lst --color=on --inc=./include --raw=lcdtest.com
 ;********************
-    org $100               ; CPM Program start address
-
+main:
     ;Initialization
     ld a,lcd_set_8bit
     call lcd_send_command
