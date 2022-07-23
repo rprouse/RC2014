@@ -20,7 +20,7 @@ docker run --rm -v ${PWD}:/src -w /src -it rprouse/asm-dev
 Compile a single file at the command line,
 
 ```sh
-sjasmplus lcdtest.asm --lst --raw=lcdtest.com
+sjasmplus lcdtest.asm --lst --color=on --inc=./include --raw=lcdtest.com
 ```
 
 ### Compile using RASM
