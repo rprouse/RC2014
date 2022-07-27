@@ -9,7 +9,8 @@ git config core.autocrlf input
 
 ## Run the Docker container with Assemblers
 
-Run the docker container.
+This project is setup to be run in a Visual Studio Code Dev Container. If you
+prefer, you can manually rum the docker container.
 
 ```sh
 docker run --rm -v ${PWD}:/src -w /src -it rprouse/asm-dev
