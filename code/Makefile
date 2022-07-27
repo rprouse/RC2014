@@ -21,7 +21,9 @@ $(INPUTS) : $(BUILD_FOLDER)
 
 default: clean all
 
-all: $(INPUTS)
+all: build
+
+build: $(INPUTS)
 
 clean:
 	$(RM_BINARY) $(RM_FLAGS) $(BUILD_FOLDER)
