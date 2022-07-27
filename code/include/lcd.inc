@@ -1,3 +1,5 @@
+  ifndef lcd_inc
+  define lcd_inc 1
 
 lcd_comm_port equ $20  ;Port addresses. Change as needed.
 lcd_data_port equ $21
@@ -12,7 +14,7 @@ lcd_line3 equ 148
 lcd_line4 equ 212
 
 lcd_init:
-  ;Initialization
+  ;Initialize the LCD and set cursor to line 1
   ld a,lcd_set_8bit
   call lcd_send_command
 
@@ -22,7 +24,7 @@ lcd_init:
   ld a,lcd_cls
   call lcd_send_command
 
-  ; Go to line
+  ; Go to line 1
   ld a,lcd_line1
   call lcd_send_command
 
@@ -35,10 +37,10 @@ lcd_send_command:
   push bc              ;Preserve
   ld c,lcd_comm_port   ;Command port
 
-lcd_command_wait_loop:   ;Busy wait
+.lcd_command_wait_loop:   ;Busy wait
   in b,(c)             ;Read status byte
   sll b                ;Shift busy bit into carry flag
-  jr c,lcd_command_wait_loop    ;While busy
+  jr c,.lcd_command_wait_loop    ;While busy
 
   out (c),a            ;Send command
   pop bc               ;Restore
@@ -53,10 +55,10 @@ lcd_send_data:
   push bc              ;Preserve
   ld c,lcd_comm_port   ;Command port
 
-lcd_data_wait_loop:      ;Busy wait
+.lcd_data_wait_loop:      ;Busy wait
   in b,(c)             ;Read status byte
   sll b                ;Shift busy bit into carry flag
-  jr c,lcd_data_wait_loop    ;While busy
+  jr c,.lcd_data_wait_loop    ;While busy
 
   ld c,lcd_data_port   ;Data port
   out (c),a            ;Send data
@@ -71,24 +73,26 @@ lcd_data_wait_loop:      ;Busy wait
 lcd_send_asciiz:
   push af
   push bc              ;Preserve
-lcd_asciiz_char_loop:
+.lcd_asciiz_char_loop:
   ld c,lcd_comm_port   ;Command port
 
-lcd_asciiz_wait_loop:    ;Busy wait
+.lcd_asciiz_wait_loop:    ;Busy wait
   in a,(c)             ;Read status byte
   rlca                 ;Shift busy bit into carry flag
-  jr c,lcd_asciiz_wait_loop    ;While busy
+  jr c,.lcd_asciiz_wait_loop    ;While busy
 
   ld a,(hl)            ;Get character
   and a                ;Is it zero?
-  jr z,lcd_asciiz_done ;If so, we're done
+  jr z,.lcd_asciiz_done ;If so, we're done
 
   ld c,lcd_data_port   ;Data port
   out (c),a            ;Send data
   inc hl               ;Next char
-  jr lcd_asciiz_char_loop
+  jr .lcd_asciiz_char_loop
 
-lcd_asciiz_done:
+.lcd_asciiz_done:
   pop bc               ;Restore
   pop af
   ret
+
+  endif
