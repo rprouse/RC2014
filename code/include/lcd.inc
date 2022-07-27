@@ -17,17 +17,17 @@ lcd_line4 equ 212
 ;Exit: All preserved
 ;******************
 lcd_send_command:
-    push bc              ;Preserve
-    ld c,lcd_comm_port   ;Command port
+  push bc              ;Preserve
+  ld c,lcd_comm_port   ;Command port
 
 lcd_command_wait_loop:   ;Busy wait
-    in b,(c)             ;Read status byte
-    sll b                ;Shift busy bit into carry flag
-    jr c,lcd_command_wait_loop    ;While busy
+  in b,(c)             ;Read status byte
+  sll b                ;Shift busy bit into carry flag
+  jr c,lcd_command_wait_loop    ;While busy
 
-    out (c),a            ;Send command
-    pop bc               ;Restore
-    ret
+  out (c),a            ;Send command
+  pop bc               ;Restore
+  ret
 
 ;******************
 ;Send a data byte to the LCD
@@ -35,18 +35,18 @@ lcd_command_wait_loop:   ;Busy wait
 ;Exit: All preserved
 ;******************
 lcd_send_data:
-    push bc              ;Preserve
-    ld c,lcd_comm_port   ;Command port
+  push bc              ;Preserve
+  ld c,lcd_comm_port   ;Command port
 
 lcd_data_wait_loop:      ;Busy wait
-    in b,(c)             ;Read status byte
-    sll b                ;Shift busy bit into carry flag
-    jr c,lcd_data_wait_loop    ;While busy
+  in b,(c)             ;Read status byte
+  sll b                ;Shift busy bit into carry flag
+  jr c,lcd_data_wait_loop    ;While busy
 
-    ld c,lcd_data_port   ;Data port
-    out (c),a            ;Send data
-    pop bc               ;Restore
-    ret
+  ld c,lcd_data_port   ;Data port
+  out (c),a            ;Send data
+  pop bc               ;Restore
+  ret
 
 ;******************
 ;Send an asciiz string to the LCD
@@ -54,26 +54,26 @@ lcd_data_wait_loop:      ;Busy wait
 ;Exit: HL=address of ending zero of the string. All others preserved
 ;******************
 lcd_send_asciiz:
-    push af
-    push bc              ;Preserve
+  push af
+  push bc              ;Preserve
 lcd_asciiz_char_loop:
-    ld c,lcd_comm_port   ;Command port
+  ld c,lcd_comm_port   ;Command port
 
 lcd_asciiz_wait_loop:    ;Busy wait
-    in a,(c)             ;Read status byte
-    rlca                 ;Shift busy bit into carry flag
-    jr c,lcd_asciiz_wait_loop    ;While busy
+  in a,(c)             ;Read status byte
+  rlca                 ;Shift busy bit into carry flag
+  jr c,lcd_asciiz_wait_loop    ;While busy
 
-    ld a,(hl)            ;Get character
-    and a                ;Is it zero?
-    jr z,lcd_asciiz_done ;If so, we're done
+  ld a,(hl)            ;Get character
+  and a                ;Is it zero?
+  jr z,lcd_asciiz_done ;If so, we're done
 
-    ld c,lcd_data_port   ;Data port
-    out (c),a            ;Send data
-    inc hl               ;Next char
-    jr lcd_asciiz_char_loop
+  ld c,lcd_data_port   ;Data port
+  out (c),a            ;Send data
+  inc hl               ;Next char
+  jr lcd_asciiz_char_loop
 
 lcd_asciiz_done:
-    pop bc               ;Restore
-    pop af
-    ret
+  pop bc               ;Restore
+  pop af
+  ret

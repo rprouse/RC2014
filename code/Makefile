@@ -5,7 +5,7 @@ MKDIR_FLAGS=-p
 BUILD_FOLDER=$(abspath ./bin)
 DIR = $(abspath .)
 #INPUTS = $(wildcard $(DIR)/*.asm)
-INPUTS = lcdtest.asm
+INPUTS = $(DIR)/lcdtest.asm
 SJASMPLUS_BINARY = sjasmplus
 SJASMPLUS_FLAGS = --color=on --inc=./include
 
