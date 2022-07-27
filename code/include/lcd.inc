@@ -11,6 +11,21 @@ lcd_line2 equ 192
 lcd_line3 equ 148
 lcd_line4 equ 212
 
+lcd_init:
+  ;Initialization
+  ld a,lcd_set_8bit
+  call lcd_send_command
+
+  ld a,lcd_cursor_on
+  call lcd_send_command
+
+  ld a,lcd_cls
+  call lcd_send_command
+
+  ; Go to line
+  ld a,lcd_line1
+  call lcd_send_command
+
 ;******************
 ;Send a command byte to the LCD
 ;Entry: A= command byte

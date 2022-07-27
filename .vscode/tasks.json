@@ -4,12 +4,12 @@
       {
           "label": "Build project",
           "type": "shell",
-          "command": "make build",
+          "command": "make",
           "options": {
               "cwd": "${workspaceFolder}/code"
           },
           "linux": {
-              "command": "make build",
+              "command": "make",
           },
           "group": {
               "kind": "build",

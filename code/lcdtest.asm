@@ -11,19 +11,7 @@
 ; sjasmplus lcdtest.asm --lst --color=on --inc=./include --raw=lcdtest.com
 ;********************
 main:
-  ;Initialization
-  ld a,lcd_set_8bit
-  call lcd_send_command
-
-  ld a,lcd_cursor_on
-  call lcd_send_command
-
-  ld a,lcd_cls
-  call lcd_send_command
-
-  ; Go to line
-  ld a,lcd_line1
-  call lcd_send_command
+  call lcd_init
 
   ;Send a string
   ld hl,rc2014
