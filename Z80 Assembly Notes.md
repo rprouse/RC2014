@@ -1,5 +1,7 @@
 # Z80 Assembly Notes
+
 ## Jumps and Conditionals
+
 | Command | Description                            | Example     |
 | ------- | -------------------------------------- | ----------- |
 | JP ##   | Jump to address or label               | JP &4000    |
@@ -10,6 +12,7 @@
 | DJNZ #  | Decreases B and Jumps if B is NotZero  | DJNZ label  |
 
 The following conditionals usually follow a `CP ##` which compares the literal value to the A register.
+
 | Conditional | Example     | Description              |
 | ----------- | ----------- | ------------------------ |
 | Carry       | JP C,label  | A<CP or Carry flag set   |
@@ -22,4 +25,5 @@ The following conditionals usually follow a `CP ##` which compares the literal v
 | Minus       | JP M,label  | First bit of A is 1      |
 
 ## Other
+
 **LDIR** means "Load, Increment Repeat". It copies BC bytes from memory position HL to memory position DE.
