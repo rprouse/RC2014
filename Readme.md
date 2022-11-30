@@ -34,6 +34,13 @@ rasm lcdtest.asm -ob lcdtest.com
 
 ## RC2014 Compact Flash
 
+Before you use `cpmcbfs`, you must install the driver. At an admin command prompt,
+run the following, then reboot.
+
+```sh
+.\cpmbfs.exe -install
+```
+
 There are two caveats to be aware of if you are operating on a CF card directly:
 
 1. You must run your command prompt as administrator.
