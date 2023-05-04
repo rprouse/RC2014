@@ -1,5 +1,6 @@
 ; Advent of Code 2015 day 1 part 1
 ; sjasmplus 1501a.asm --lst --color=on --inc=./include --raw=1501a.com
+; srec_cat 1501a.com -binary -output 1501a.hex -intel
   org $100
 
   jp main
