@@ -2,3 +2,4 @@
 *.bin
 *.lst
 !code/download.com/
+**/bin
