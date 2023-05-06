@@ -1,6 +1,24 @@
-// zcc +cpm -vn -O3 -clib=new 1501a.c -o 1510a -create-app
+// Advent of Code 2015 Day 1 Part A
+//
+// zcc +cpm -vn -O3 -clib=new 1501a.c -o 1501a -create-app
 
 #include <stdio.h>
+
+const unsigned char *data[];
+
+int main(void)
+{
+    int floor = 0;
+    for (int i = 0; data[i]; ++i)
+    {
+        for (int j = 0; data[i][j]; ++j)
+        {
+            floor += data[i][j] == '(' ? 1 : -1;
+        }
+    }
+    printf("Floor %d\n", floor);
+    return 0;
+}
 
 const unsigned char *data[] = {
     "()(((()))(()()()((((()(((())(()(()((((((()(()(((())))((()",
@@ -128,12 +146,3 @@ const unsigned char *data[] = {
     "()())(())((())()())())((((((()(()(((((()))(()(",
     0
 };
-
-int main(void)
-{
-    for (int i = 0; data[i]; ++i)
-    {
-      printf("%s\n", data[i]);
-    }
-    return 0;
-}
