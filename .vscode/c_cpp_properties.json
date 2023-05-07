@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/opt/z88dk/include/**"
+            ],
+            "defines": [],
+            "compilerPath": "/opt/z88dk/bin/zcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerArgs": [
+                "+cpm"
+            ]
+        }
+    ],
+    "version": 4
+}

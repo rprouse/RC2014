@@ -1,0 +1,8 @@
+{
+  "files.associations": {
+    "*.config": "xml",
+    "*.saproj": "xml",
+    "*.build": "xml",
+    "cpm.h": "c"
+  }
+}
