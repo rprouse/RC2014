@@ -107,4 +107,5 @@ int main(void)
         lcd_send_string(lines[i]);
         printf("%s\n", lines[i]);
     }
+    return 0;
 }
