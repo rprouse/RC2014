@@ -1,0 +1,4 @@
+RC2014 Z80 Computer
+Booting: V3RTEX_CORE
+Connect: NEURAL-NET
+Uplink Established>

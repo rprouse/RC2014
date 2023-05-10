@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 #define lcd_comm_port 0x20  // Port addresses. Change as needed.
 #define lcd_data_port 0x21
@@ -86,26 +87,34 @@ void lcd_send_string(const char* str)
     }
 }
 
-// BOOTING SYSMATRIX...
-// ENCRYPT://PHANTOM.V23
-// CONNECT: NEURAL-NET
-// BOOTING V3RTEX_CORE
-// LINK_ESTABLISHED
-const char* lines [] = {
-  "RC2014 Z80 Computer",
-  "Booting: V3RTEX_CORE",
-  "Connect: NEURAL-NET",
-  "Uplink Established>"
-};
-
 int main(void)
 {
     lcd_init();
-    for (uint8_t i=0; i < 4; i++)
+    FILE *fp = fopen("LCD.TXT","r");
+    if (fp == NULL)
     {
-        lcd_set_line(i+1);
-        lcd_send_string(lines[i]);
-        printf("%s\n", lines[i]);
+        printf("Failed to open LCD.TXT\n");
+        lcd_send_string("Failed to open");
+        lcd_set_line(2);
+        lcd_send_string("file LCD.TXT.");
+        return -1;
+    }
+
+    register char c;
+    uint8_t line = 1;
+    while ((c = getc(fp)) != EOF)
+    {
+        if (c == '\r')
+          continue;
+
+        if (c == '\n')
+        {
+            lcd_set_line(++line);
+            printf("\n");
+            continue;
+        }
+        lcd_send_data(c);
+        printf("%c", c);
     }
     return 0;
 }
