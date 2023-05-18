@@ -3,3 +3,4 @@
 *.lst
 !code/download.com/
 **/bin
+/disks/RC2014.img

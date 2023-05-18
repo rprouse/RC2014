@@ -38,7 +38,7 @@ Before you use `cpmcbfs`, you must install the driver. At an admin command promp
 run the following, then reboot.
 
 ```sh
-.\cpmbfs.exe -install
+.\cpmbfs.exe --install
 ```
 
 There are two caveats to be aware of if you are operating on a CF card directly:
