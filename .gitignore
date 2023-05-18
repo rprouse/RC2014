@@ -5,3 +5,5 @@
 **/bin
 /disks/RC2014.img
 !/disks/**/*.com
+!/disks/**/*.bin
+!/disks/**/*.lst
