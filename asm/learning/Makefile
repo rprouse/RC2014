@@ -1,10 +1,10 @@
-ASM=sjasmplus
-ASMFLAGS=--lst --color=on --inc=./include --raw=
-
 BINDIR=bin
 
 SRCS=$(wildcard ./*.asm)
 BINS=$(patsubst ./%.asm, $(BINDIR)/%.com, $(SRCS))
+
+ASM=sjasmplus
+ASMFLAGS=--nologo --outprefix=$(BINDIR)/ --lst --color=on --inc=./include --raw=
 
 .DEFAULT_GOAL := default
 

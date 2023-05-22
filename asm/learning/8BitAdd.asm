@@ -1,10 +1,10 @@
 
 ; Add the value at (op1) with (op2) and store the result at (res)
-  org $100      ; CPM Program start address
+  org 100H      ; CPM Program start address
 
   ld a,(op1)    ; Get the data for op1
   ld hl,op2     ; Get the data for op2
-  add a,(hl)    ; Complement
+  add a,(hl)
   ld (res),a    ; Store the result
   ret
 

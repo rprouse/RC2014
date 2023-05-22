@@ -1,6 +1,6 @@
 
 ; Complement the value at (op1) and store the result at (res)
-  org $100      ; CPM Program start address
+  org 100H      ; CPM Program start address
 
   ld a,(op1)    ; Get the data
   cpl           ; Complement
