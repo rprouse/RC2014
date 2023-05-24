@@ -4,5 +4,6 @@
     "*.saproj": "xml",
     "*.build": "xml",
     "cpm.h": "c"
-  }
+  },
+  "editor.inlineSuggest.enabled": false
 }
