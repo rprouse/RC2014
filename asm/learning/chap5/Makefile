@@ -3,9 +3,13 @@ BINDIR=bin
 SRCS=$(wildcard ./*.asm)
 BINS=$(patsubst ./%.asm, $(BINDIR)/%.com, $(SRCS))
 
-ASM=sjasmplus
-ASMFLAGS=--nologo --outprefix=$(BINDIR)/ --lst --color=on --inc=./include --raw=
+# Compile using sjasmplus
+# ASM=sjasmplus
+# ASMFLAGS=--nologo --outprefix=$(BINDIR)/ --lst --color=on --inc=./include --raw=
 
+# Compile using z80asm from z88dk
+ASM=z80asm
+ASMFLAGS=-b -l -s -m -o=
 .DEFAULT_GOAL := default
 
 default: all
@@ -13,7 +17,8 @@ default: all
 all:setupdirs clean $(BINS)
 
 $(BINDIR)/%.com: %.asm
-	$(ASM) $< $(ASMFLAGS)$@
+# $(ASM) $< $(ASMFLAGS)$@
+	$(ASM) $(ASMFLAGS)$@ $<
 
 # Initial project setup helper
 setupdirs:
@@ -22,3 +27,8 @@ setupdirs:
 
 clean:
 	$(RM) -r $(BINDIR)/*
+	$(RM) *.lis
+	$(RM) *.o
+	$(RM) *.lst
+	$(RM) *.sym
+	$(RM) .ticks_history.txt

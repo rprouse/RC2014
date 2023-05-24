@@ -1,6 +1,10 @@
 *.com
 *.bin
 *.lst
+*.o
+*.sym
+*.map
+*.lis
 !code/download.com/
 **/bin
 /disks/RC2014.img
