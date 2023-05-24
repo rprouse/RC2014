@@ -7,3 +7,4 @@
 !/disks/**/*.com
 !/disks/**/*.bin
 !/disks/**/*.lst
+.ticks_history.txt
