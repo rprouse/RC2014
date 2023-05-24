@@ -2,15 +2,15 @@
 ; Add 16-bit values at (op1) and (op2) and store the result at (res)
   org 100H      ; CPM Program start address
 
-  ld a,(op1)    ; Get the low nibble of op1
+  ld a,(op1)    ; Get the low byte of op1
   ld b,a
-  ld a,(op2)    ; Get the low nibble of op2
+  ld a,(op2)    ; Get the low byte of op2
   add a,b
-  ld (res),a    ; Store the low nibble result
+  ld (res),a    ; Store the low byte result
 
-  ld a,(op1+1)  ; Get the high nibble of op1
+  ld a,(op1+1)  ; Get the high byte of op1
   ld b,a
-  ld a,(op2+1)  ; Get the high nibble of op2
+  ld a,(op2+1)  ; Get the high byte of op2
   adc a,b       ; Add with cary
   ld (res+1),a  ; Store the result
   ret
