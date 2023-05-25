@@ -4,19 +4,20 @@
 
   ld hl,count
   ld b,(hl)
+  xor a         ; Zero out the sum
+  ld c,a        ; Use c for the carry
 sum:
   inc hl
-  ld a,(res)    ; Load the low byte of the result
   add (hl)      ; Add the next value
-  ld (res),a    ; Store the low byte of the result
+  jr nc,nocarry
+  inc c         ; Add the carry
+nocarry:
+  djnz sum      ; decrement b and jump back in non-zero
 
-  ld a,(res+1)  ; Load the high byte of the result
-  adc 0         ; Add the carry to the high byte
-  ld (res+1),a  ; Store the hight byte of the result
-
-  dec b
-  jr nz,sum
-
+  ld hl,res
+  ld (hl),a     ; Store the results
+  inc hl
+  ld (hl),c
   ret
 
 count: db 03H
