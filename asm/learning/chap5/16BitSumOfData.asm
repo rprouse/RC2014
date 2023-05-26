@@ -1,5 +1,5 @@
 
-; Sum the data in 16 Bits
+; Sum 8 bit data in 16 Bits
   org 100H      ; CPM Program start address
 
   ld hl,count
