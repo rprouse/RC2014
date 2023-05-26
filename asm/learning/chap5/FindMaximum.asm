@@ -3,19 +3,17 @@
   org 100H      ; CPM Program start address
 
   ld hl,count
-  ld b,(hl)
-  inc hl
-  ld c,(hl)     ; C will hold the max value
+  ld b,(hl)     ; Counter
+  xor a         ; A will hold the max
 next:
-  ld a,(hl)
   inc hl
-  cp c
-  jr c,notbigger
-  ld c,a        ; Found a larger number
+  cp (hl)
+  jr nc,notbigger
+  ld a,(hl)     ; Found a larger number
 notbigger:
   djnz next     ; decrement b and jump back in non-zero
 
-  ld (hl),c     ; Store the results
+  ld (res),a     ; Store the results
   ret
 
 count: db 05H
