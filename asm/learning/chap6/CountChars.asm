@@ -4,9 +4,9 @@
 
   ld hl,data
   ld c,0        ; Zero out the count
+  ld a,'\n'     ; String to compare
 next:
-  ld a,(hl)
-  sub '\n'
+  cp (hl)
   jr z,end      ; Are we at the \n yet?
 
   inc c         ; Found a char, increment the count and
