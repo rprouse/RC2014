@@ -1,5 +1,5 @@
 
-; Count the characters in a s
+; Count the characters in a string
   org 100H      ; CPM Program start address
 
   ld hl,data
