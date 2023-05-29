@@ -4,10 +4,10 @@
 
   ld hl,data
   ld c,0        ; Zero out the count
-  ld a,'\n'     ; String to compare
+  ld a,0        ; Character to compare.
 next:
   cp (hl)
-  jr z,end      ; Are we at the \n yet?
+  jr z,end      ; Are we at the null yet?
 
   inc c         ; Found a char, increment the count and
   inc hl        ; go to next char
@@ -18,5 +18,5 @@ end:
   ld (hl),c     ; Store the result
   ret
 
-data:  db "RATHER\n"
+data:  db "RATHER",0
 res:   db 0   ; Result should be 06
