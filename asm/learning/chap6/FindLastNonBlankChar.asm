@@ -6,6 +6,9 @@
   ld hl,str
   ld a,0        ; Start by finding the null terminator
   ld b,0        ; Counter so we don't go past beginning of str
+  cp (hl)
+  jr z,done     ; Handle empty string special case
+
 next:
   cp (hl)       ; NULL terminator?
   jr z,null
@@ -29,5 +32,5 @@ done:
 ; str:  db "Cat",0
 ; str:  db "Cat  ",0
 str:  db "  ",0
-;str:  db 0      ; TODO: This returns the memory location before
+;str:  db 0
 res:  db 0,0
