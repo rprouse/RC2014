@@ -19,3 +19,4 @@ done:
 ; data: db 37H
 data: db 55H  ; Out of range high
 res:  db 0   ; Should be 7 or FF
+
