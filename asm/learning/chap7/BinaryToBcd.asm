@@ -13,6 +13,8 @@ loop:
 	daa
 	djnz loop
 
+  ; At this point A contains the high and low BCD values in
+  ; the high and low nibbles. Split them out to two bytes
   ld b,a
   and 0F0H
   srl a
