@@ -11,4 +11,4 @@ main:
   ret
 
 hello_world:
-  db "Hello Z80 World from CP/M$"
+  db "Hello Z80 World from CP/M\r\n$"

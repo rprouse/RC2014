@@ -28,15 +28,11 @@ str_newline:
 ;
 ; general BDOS functions
 ;
-; function GETC
 GETC:
     ld c, C_READ
     call BDOS
     ret
-; end function
 
-
-; function PRINT_CHAR
 PRINT_CHAR:
     push hl
     push de
@@ -50,19 +46,28 @@ PRINT_CHAR:
     pop de
     pop hl
     ret
-; end function
 
-; function PRINT_NEWLINE
 PRINT_NEWLINE:
     ;push hl
     ld hl, str_newline
     call PRINT_STR
     ;pop hl
     ret
-; end function
 
+GET_STR:
+    push hl
+    push de
+    push bc
 
-; function PRINT_STR
+    ex de, hl
+    ld c, C_READSTR
+    call BDOS
+
+    pop bc
+    pop de
+    pop hl
+    ret
+
 PRINT_STR:
     push hl
     push de
@@ -76,7 +81,6 @@ PRINT_STR:
     pop de
     pop hl
     ret
-; end function
 
 ; function PRINT_HEX
 ; print a hexadecimal byte
@@ -100,9 +104,6 @@ PASS1:      AND     $0F
 NUM:
             CALL    PRINT_CHAR
             RET
-; end function
-;
-
 
 ; Combined routine for conversion of different sized binary numbers into
 ; directly printable ASCII(Z)-string
