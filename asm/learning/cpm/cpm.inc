@@ -15,11 +15,14 @@ C_READSTR   equ $0a         ; buffered console input
 DRV_SET     equ $0e         ; select drive
 F_OPEN      equ $0f         ; open file
 F_CLOSE     equ $10         ; close file
+F_SFIRST    equ $11         ; search for first
+F_SNEXT     equ $12         ; search for next
 F_WRITE     equ $15         ; write record
 F_MAKE      equ $16         ; create file
 DRV_GET     equ $19         ; get current drive
 F_SETDMA    equ $1a         ; set DMA address
 DRV_DPB     equ $1f         ; get DPB address
+F_USERNUM   equ $20         ; get/set user number
 DRV_RESET   equ $25         ; selectively reset a disk drive
 
 str_newline:

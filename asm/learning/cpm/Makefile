@@ -14,7 +14,9 @@ ASMFLAGS=-b -l -s -m -o=
 
 default: all
 
-all:setupdirs clean $(BINS)
+all:setupdirs clean bin
+
+bin:$(BINS)
 
 $(BINDIR)/%.com: %.asm
 # $(ASM) $< $(ASMFLAGS)$@
