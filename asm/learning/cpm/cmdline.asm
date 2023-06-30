@@ -32,21 +32,18 @@ cmd_msg:    db "Commandline:\r\n$"
 
 main:
   ld de, fcb1_msg
-  ld c, c_writestr
-  call bdos                 ; Write the FCB1 header
+  call write_str            ; Write the FCB1 header
   ld hl, fcb1
   call display_fcb          ; Display the first File Control Block
 
-  ld de, fcb1_msg
-  ld c, c_writestr
-  call bdos                 ; Write the FCB2 header
+  ld de, fcb2_msg
+  call write_str            ; Write the FCB2 header
   ld hl, fcb2
-  call display_fcb          ; Display the second File Control Block
+  ;call display_fcb          ; Display the second File Control Block
 
   ld de, cmd_msg
-  ld c, c_writestr
-  call bdos                 ; Write the commandline header
-  call display_commandline  ; Display the command line tail
+  call write_str            ; Write the commandline header
+  ;call display_commandline  ; Display the command line tail
 
   ; Warm boot CP/M
   jp boot
@@ -62,7 +59,7 @@ display_fcb:
   cp 0
   jr z, display_filename    ; If it is 0, it is the default drive, don't show
 
-  add 'A'                   ; Convert the drive number to a letter
+  add 'A'-1                 ; Convert the drive number to a letter
   call write_char           ; Output the drive letter
   ld a, ':'
   call write_char           ; Output the colon after the drive letter
@@ -103,19 +100,51 @@ cmd_next:
 ; =============================================================================
 ; Writes the character in the A register to the console
 write_char:
+  push af
+  push bc
+  push de
+  push hl
   ld e, a
   ld c, c_write
   call bdos
+  pop hl
+  pop de
+  pop bc
+  pop af
   ret
 
 ; =============================================================================
 ; Writes a newline CR/LF to the console
 write_newline:
+  push af
+  push bc
+  push de
+  push hl
   ld c, c_write
   ld e, cr
   call bdos
   ld e, lf
   call bdos
+  pop hl
+  pop de
+  pop bc
+  pop af
+  ret
+
+; =============================================================================
+; Writes a $ terminated string pointed at by (DE)
+; This is the BDOS c_writestr call
+write_str:
+  push af
+  push bc
+  push de
+  push hl
+  ld c, c_writestr
+  call bdos
+  pop hl
+  pop de
+  pop bc
+  pop af
   ret
 
 ; =============================================================================
@@ -125,8 +154,8 @@ write_newline:
 write_str_skip_space:
   ld a, (hl)                ; Load the next char of the string
   inc hl
-  cp space                  ; Is it a space
-  jr z, skip_space          ; Don't display spaces but continue to inc HL
+  ;cp space                  ; Is it a space
+  ;jr z, skip_space          ; Don't display spaces but continue to inc HL
   call write_char           ; Display the next char of the string
 skip_space:
   djnz write_str_skip_space
