@@ -21,6 +21,11 @@ main:
   ld b, $0                  ; Print out 256 bytes
 
 loop:
+  ld a, l                   ; Write the address every 16 bytes
+  and $0F
+  cp 0
+  call z, write_address
+
   ld a, (hl)                ; Load and output the next byte
   inc hl
   call write_hex
@@ -37,12 +42,23 @@ loop:
   ret
 
 ; =============================================================================
-; function WRITE_HEX
-; print a hexadecimal byte
-;
-; entry:
-;   A byte to print
-;
+; Print the address in the HL register as hex with two spaces at the end
+write_address:
+  push af
+
+  ld a, h
+  call write_hex
+  ld a, l
+  call write_hex
+  ld a, space
+  call write_char
+  call write_char
+
+  pop af
+  ret
+
+; =============================================================================
+; Print a hexadecimal byte in the A register
 write_hex:
   push af
   rrca
