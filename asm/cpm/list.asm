@@ -6,32 +6,32 @@
   include "cpm.inc"
 
 main:
-  ld hl,drivestr
-  call PRINT_STR
+  ld de,drivestr
+  call write_string
 
-  ld c,DRV_GET
-  call BDOS
-  add 'A'
-  call PRINT_CHAR
-  call PRINT_NEWLINE
+  ld c,drv_get
+  call bdos
+  add 'a'
+  call write_char
+  call write_newline
 
-  ld hl,userstr
-  call PRINT_STR
-  ld c,F_USERNUM
-  ld e,$FF        ; Get the user number
-  call BDOS
+  ld de,userstr
+  call write_string
+  ld c,f_usernum
+  ld e,$ff        ; get the user number
+  call bdos
   add '0'
-  call PRINT_CHAR
-  call PRINT_NEWLINE
+  call write_char
+  call write_newline
 
-  ld c,F_SFIRST
+  ld c,f_sfirst
   ld de,fcb_drive
-  call F_SFIRST
+  call f_sfirst
   ld a,'$'
   ld (fcb_extension),a
-  ld hl,filename
-  call PRINT_STR
-  call PRINT_NEWLINE
+  ld de,filename
+  call write_string
+  call write_newline
 
   ret
 

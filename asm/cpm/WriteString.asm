@@ -7,7 +7,7 @@
 
 main:
   ld hl,hello_world
-  call PRINT_STR
+  call write_string
   ret
 
 hello_world:

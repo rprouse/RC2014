@@ -1,29 +1,10 @@
 ; An example program that views command line options passed to the program
 
 ; =============================================================================
-; Base page memory declarations in the first 255 bytes of memory
-boot        equ $0          ; The CP/M warm boot vector
-bdos        equ $5          ; CP/M BDOS vector address
-fcb1        equ $5C         ; CP/M default File Control Block (FCB)
-fcb2        equ $6C         ; CP/M secondary File Control Block (FCB)
-cmdlen      equ $80         ; The length of the command line tail that follows
-cmdline     equ $81         ; The tail of the command line, 127 bytes long
-dma         equ $80         ; default dma buffer, 128 bytes long
-
-; =============================================================================
-; BDOS functions
-c_write     equ $02         ; console output
-c_writestr  equ $09         ; output string, '$' terminated, to console output
-
-; =============================================================================
-; Other defines
-cr          equ $0D         ; Cursor return
-lf          equ $0A         ; Line feed
-space       equ $20         ; Space character
-
-; =============================================================================
   org $100                  ; CPM Program start address
   jp main                   ; skip over the data block
+
+  include "cpm.inc"
 
 data:
 fcb1_msg:   db "FCB #1: $"
@@ -32,17 +13,17 @@ cmd_msg:    db "Commandline:\r\n$"
 
 main:
   ld de, fcb1_msg
-  call write_str            ; Write the FCB1 header
+  call write_string         ; Write the FCB1 header
   ld hl, fcb1
   call display_fcb          ; Display the first File Control Block
 
   ld de, fcb2_msg
-  call write_str            ; Write the FCB2 header
+  call write_string         ; Write the FCB2 header
   ld hl, fcb2
   ;call display_fcb          ; Display the second File Control Block
 
   ld de, cmd_msg
-  call write_str            ; Write the commandline header
+  call write_string         ; Write the commandline header
   ;call display_commandline  ; Display the command line tail
 
   ; Warm boot CP/M
@@ -95,56 +76,6 @@ cmd_next:
   djnz cmd_loop
 
   call write_newline        ; Newline at the end
-  ret
-
-; =============================================================================
-; Writes the character in the A register to the console
-write_char:
-  push af
-  push bc
-  push de
-  push hl
-  ld e, a
-  ld c, c_write
-  call bdos
-  pop hl
-  pop de
-  pop bc
-  pop af
-  ret
-
-; =============================================================================
-; Writes a newline CR/LF to the console
-write_newline:
-  push af
-  push bc
-  push de
-  push hl
-  ld c, c_write
-  ld e, cr
-  call bdos
-  ld e, lf
-  call bdos
-  pop hl
-  pop de
-  pop bc
-  pop af
-  ret
-
-; =============================================================================
-; Writes a $ terminated string pointed at by (DE)
-; This is the BDOS c_writestr call
-write_str:
-  push af
-  push bc
-  push de
-  push hl
-  ld c, c_writestr
-  call bdos
-  pop hl
-  pop de
-  pop bc
-  pop af
   ret
 
 ; =============================================================================

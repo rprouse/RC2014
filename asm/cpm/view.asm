@@ -1,28 +1,10 @@
 ; Views a file passed in on the command line
 
 ; =============================================================================
-; Base page memory declarations in the first 255 bytes of memory
-boot        equ $0          ; The CP/M warm boot vector
-bdos        equ $5          ; CP/M BDOS vector address
-fcb         equ $5C         ; CP/M default File Control Block (FCB)
-dma         equ $80         ; default dma buffer, 128 bytes long
-
-; =============================================================================
-; BDOS functions
-c_write     equ $02         ; console output
-c_writestr  equ $09         ; output string, '$' terminated, to console output
-f_open      equ $0f         ; open file
-f_close     equ $10         ; close file
-f_read      equ $14         ; read next file record
-
-; =============================================================================
-; Other defines
-subz        equ $1A         ; SUB or Ctrl-Z
-space       equ $20         ; Space character
-
-; =============================================================================
   org $100                  ; CPM Program start address
   jp main                   ; skip over the data block
+
+  include "cpm.inc"
 
 data:
 ; Error messages
@@ -32,7 +14,7 @@ err_read:   db "Error reading file\r\n$"
 
 main:
   ; Check the FCB contains a file
-  ld hl, fcb
+  ld hl, fcb1
   inc hl
   ld a, (hl)                ; Load the first char of the filename
   cp space
@@ -44,7 +26,7 @@ main:
 
 open_file:
   ; Call BDOS function to open the file
-  ld de, fcb
+  ld de, fcb1
   ld c, f_open              ; Function number for "open file"
   call bdos
 
@@ -62,7 +44,7 @@ open_file:
 file_opened_successfully:
   ; File is now open for reading
   ; Start reading in the data 128 bytes at a time
-  ld de, fcb
+  ld de, fcb1
   ld c, f_read
   call bdos
   cp a, 1                   ; 1 is EOF

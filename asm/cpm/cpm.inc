@@ -1,115 +1,153 @@
+; =============================================================================
 ; Definitions and methods for CP/M development
-;
-BDOS        equ $5          ; CP/M BDOS vector address
-FCB         equ $5c         ; CP/M default File Control Block (FCB)
-BUF         equ $80         ; default dma buffer
 
-CNTRLC      equ $3
+; =============================================================================
+; Base page memory declarations in the first 255 bytes of memory
 ;
-; define BDOS functions
-;
-C_READ      equ $01         ; console input
-C_WRITE     equ $02         ; console output
-C_WRITESTR  equ $09         ; output string, '$' terminated, to console output
-C_READSTR   equ $0a         ; buffered console input
-C_STAT      equ $0b         ; console status, nonzero if char waiting
-DRV_SET     equ $0e         ; select drive
-F_OPEN      equ $0f         ; open file
-F_CLOSE     equ $10         ; close file
-F_SFIRST    equ $11         ; search for first
-F_SNEXT     equ $12         ; search for next
-F_READ      equ $14         ; read next file record
-F_WRITE     equ $15         ; write record
-F_MAKE      equ $16         ; create file
-DRV_GET     equ $19         ; get current drive
-F_SETDMA    equ $1a         ; set DMA address
-DRV_DPB     equ $1f         ; get DPB address
-F_USERNUM   equ $20         ; get/set user number
-DRV_RESET   equ $25         ; selectively reset a disk drive
+boot        equ $0          ; The CP/M warm boot vector
+bdos        equ $5          ; CP/M BDOS vector address
+fcb1        equ $5C         ; CP/M default File Control Block (FCB)
+fcb2        equ $6C         ; CP/M secondary File Control Block (FCB)
+cmdlen      equ $80         ; The length of the command line tail that follows
+cmdline     equ $81         ; The tail of the command line, 127 bytes long
+dma         equ $80         ; default dma buffer, 128 bytes long
 
+cntrlc      equ $3
+
+; =============================================================================
+; define bdos functions
+;
+c_read      equ $01         ; console input
+c_write     equ $02         ; console output
+c_writestr  equ $09         ; output string, '$' terminated, to console output
+c_readstr   equ $0A         ; buffered console input
+c_stat      equ $0B         ; console status, nonzero if char waiting
+drv_set     equ $0E         ; select drive
+f_open      equ $0F         ; open file
+f_close     equ $10         ; close file
+f_sfirst    equ $11         ; search for first
+f_snext     equ $12         ; search for next
+f_read      equ $14         ; read next file record
+f_write     equ $15         ; write record
+f_make      equ $16         ; create file
+drv_get     equ $19         ; get current drive
+f_setdma    equ $1A         ; set dma address
+drv_dpb     equ $1F         ; get dpb address
+f_usernum   equ $20         ; get/set user number
+drv_reset   equ $25         ; selectively reset a disk drive
+
+; =============================================================================
+; Other defines
+;
+cr          equ $0D         ; Cursor return
+lf          equ $0A         ; Line feed
+subz        equ $1A         ; SUB or Ctrl-Z
+space       equ $20         ; Space character
+
+; =============================================================================
+; Data
+;
 str_newline:
     db "\r\n$"
-;
-;
-; general BDOS functions
-;
-GETC:
-    ld c, C_READ
-    call BDOS
+
+; =============================================================================
+; Macros
+macro push_all
+  push af
+  push bc
+  push de
+  push hl
+endm
+
+macro pop_all
+  pop hl
+  pop de
+  pop bc
+  pop af
+endm
+
+; =============================================================================
+; General BDOS functions
+
+; =============================================================================
+; Wait for a character from the keyboard; then echo it to the screen and return
+; it in the A register
+read_char:
+    ld c, c_read
+    call bdos
     ret
 
-PRINT_CHAR:
-    push hl
+; =============================================================================
+; Writes a newline CR/LF to the console
+write_newline:
     push de
-    push bc
 
-    ld e, a
-    ld c, C_WRITE
-    call BDOS
+    ld de, str_newline
+    call write_string
 
-    pop bc
     pop de
-    pop hl
     ret
 
-PRINT_NEWLINE:
-    ;push hl
-    ld hl, str_newline
-    call PRINT_STR
-    ;pop hl
+; =============================================================================
+; Reads a string into (DE)
+read_string:
+    push_all
+
+    ld c, c_readstr
+    call bdos
+
+    pop_all
     ret
 
-GET_STR:
-    push hl
-    push de
-    push bc
+; =============================================================================
+; Writes a $ terminated string pointed at by (DE)
+; This is the BDOS c_writestr call
+write_string:
+  push_all
 
-    ex de, hl
-    ld c, C_READSTR
-    call BDOS
+  ld c, c_writestr
+  call bdos
 
-    pop bc
-    pop de
-    pop hl
-    ret
+  pop_all
+  ret
 
-PRINT_STR:
-    push hl
-    push de
-    push bc
+; =============================================================================
+; Writes the character in the A register to the console
+write_char:
+  push_all
 
-    ex de, hl
-    ld c, C_WRITESTR
-    call BDOS
+  ld e, a
+  ld c, c_write
+  call bdos
 
-    pop bc
-    pop de
-    pop hl
-    ret
+  pop_all
+  ret
 
-; function PRINT_HEX
-; print a hexadecimal byte
-;
-; entry:
-;   A byte to print
-;
-PRINT_HEX:
-            PUSH    AF
-            RRCA
-            RRCA
-            RRCA
-            RRCA                        ; get high nibble
-            CALL    PASS1               ;
-            POP     AF
-PASS1:      AND     $0F
-            ADD     A,$30
-            CP      $3A
-            JR      C,NUM               ; A < $3a - 0-9
-            ADD     A,$07               ; else A-F
-NUM:
-            CALL    PRINT_CHAR
-            RET
+; =============================================================================
+; Print a hexadecimal byte in the A register
+write_hex:
+  push af
 
+  rrca
+  rrca
+  rrca
+  rrca                      ; get high nibble
+  call pass1
+
+  pop af
+
+pass1:
+  and $0F
+  add $30
+  cp $3A
+  jr c, num                 ; A < $3a - 0-9
+  add $07                   ; else A-F
+
+num:
+  call write_char
+  ret
+
+; =============================================================================
 ; Combined routine for conversion of different sized binary numbers into
 ; directly printable ASCII(Z)-string
 ; Input value in registers, number size and -related to that- registers to fill
@@ -134,88 +172,88 @@ NUM:
 ; by Alwin Henseler
 
 
-B2D8:    LD H,0
-         LD L,A
-B2D16:   LD E,0
-B2D24:   LD D,0
-B2D32:   LD BC,0
-B2D48:   LD IX,0          ; zero all non-used bits
-B2D64:
-         LD (B2DINV),HL
-         LD (B2DINV+2),DE
-         LD (B2DINV+4),BC
-         LD (B2DINV+6),IX ; place full 64-bit input value in buffer
-         LD HL,B2DBUF
-         LD DE,B2DBUF+1
-         LD (HL),' '
-B2DFILC: EQU $-1            ; address of fill-character
-         LD BC,18
-         LDIR               ; fill 1st 19 bytes of buffer with spaces
-         LD (B2DEND-1),BC ;set BCD value to "0" & place terminating 0
-         LD E,1             ; no. of bytes in BCD value
-         LD HL,B2DINV+8     ; (address MSB input)+1
-         LD BC,0909H
-         XOR A
-B2DSKP0: DEC B
-         JR Z,B2DSIZ        ; all 0: continue with postprocessing
-         DEC HL
-         OR (HL)            ; find first byte <>0
-         JR Z,B2DSKP0
-B2DFND1: DEC C
-         RLA
-         JR NC,B2DFND1      ; determine no. of most significant 1-bit
-         RRA
-         LD D,A             ; byte from binary input value
-B2DLUS2: PUSH HL
-         PUSH BC
-B2DLUS1: LD HL,B2DEND-1     ; address LSB of BCD value
-         LD B,E             ; current length of BCD value in bytes
-         RL D               ; highest bit from input value -> carry
-B2DLUS0: LD A,(HL)
-         ADC A,A
-         DAA
-         LD (HL),A          ; double 1 BCD byte from intermediate result
-         DEC HL
-         DJNZ B2DLUS0       ; and go on to double entire BCD value (+carry!)
-         JR NC,B2DNXT
-         INC E              ; carry at MSB -> BCD value grew 1 byte larger
-         LD (HL),1          ; initialize new MSB of BCD value
-B2DNXT:  DEC C
-         JR NZ,B2DLUS1      ; repeat for remaining bits from 1 input byte
-         POP BC             ; no. of remaining bytes in input value
-         LD C,8             ; reset bit-counter
-         POP HL             ; pointer to byte from input value
-         DEC HL
-         LD D,(HL)          ; get next group of 8 bits
-         DJNZ B2DLUS2       ; and repeat until last byte from input value
-B2DSIZ:  LD HL,B2DEND       ; address of terminating 0
-         LD C,E             ; size of BCD value in bytes
-         OR A
-         SBC HL,BC          ; calculate address of MSB BCD
-         LD D,H
-         LD E,L
-         SBC HL,BC
-         EX DE,HL           ; HL=address BCD value, DE=start of decimal value
-         LD B,C             ; no. of bytes BCD
-         SLA C              ; no. of bytes decimal (possibly 1 too high)
-         LD A,'0'
-         RLD                ; shift bits 4-7 of (HL) into bit 0-3 of A
-         CP '0'             ; (HL) was > 9h?
-         JR NZ,B2DEXPH      ; if yes, start with recording high digit
-         DEC C              ; correct number of decimals
-         INC DE             ; correct start address
-         JR B2DEXPL         ; continue with converting low digit
-B2DEXP:  RLD                ; shift high digit (HL) into low digit of A
-B2DEXPH: LD (DE),A          ; record resulting ASCII-code
-         INC DE
-B2DEXPL: RLD
-         LD (DE),A
-         INC DE
-         INC HL             ; next BCD-byte
-         DJNZ B2DEXP        ; and go on to convert each BCD-byte into 2 ASCII
-         SBC HL,BC          ; return with HL pointing to 1st decimal
-         RET
+b2d8:    ld h,0
+         ld l,a
+b2d16:   ld e,0
+b2d24:   ld d,0
+b2d32:   ld bc,0
+b2d48:   ld ix,0          ; zero all non-used bits
+b2d64:
+         ld (b2dinv),hl
+         ld (b2dinv+2),de
+         ld (b2dinv+4),bc
+         ld (b2dinv+6),ix ; place full 64-bit input value in buffer
+         ld hl,b2dbuf
+         ld de,b2dbuf+1
+         ld (hl),' '
+b2dfilc: equ $-1            ; address of fill-character
+         ld bc,18
+         ldir               ; fill 1st 19 bytes of buffer with spaces
+         ld (b2dend-1),bc ;set bcd value to "0" & place terminating 0
+         ld e,1             ; no. of bytes in bcd value
+         ld hl,b2dinv+8     ; (address msb input)+1
+         ld bc,0909h
+         xor a
+b2dskp0: dec b
+         jr z,b2dsiz        ; all 0: continue with postprocessing
+         dec hl
+         or (hl)            ; find first byte <>0
+         jr z,b2dskp0
+b2dfnd1: dec c
+         rla
+         jr nc,b2dfnd1      ; determine no. of most significant 1-bit
+         rra
+         ld d,a             ; byte from binary input value
+b2dlus2: push hl
+         push bc
+b2dlus1: ld hl,b2dend-1     ; address lsb of bcd value
+         ld b,e             ; current length of bcd value in bytes
+         rl d               ; highest bit from input value -> carry
+b2dlus0: ld a,(hl)
+         adc a,a
+         daa
+         ld (hl),a          ; double 1 bcd byte from intermediate result
+         dec hl
+         djnz b2dlus0       ; and go on to double entire bcd value (+carry!)
+         jr nc,b2dnxt
+         inc e              ; carry at msb -> bcd value grew 1 byte larger
+         ld (hl),1          ; initialize new msb of bcd value
+b2dnxt:  dec c
+         jr nz,b2dlus1      ; repeat for remaining bits from 1 input byte
+         pop bc             ; no. of remaining bytes in input value
+         ld c,8             ; reset bit-counter
+         pop hl             ; pointer to byte from input value
+         dec hl
+         ld d,(hl)          ; get next group of 8 bits
+         djnz b2dlus2       ; and repeat until last byte from input value
+b2dsiz:  ld hl,b2dend       ; address of terminating 0
+         ld c,e             ; size of bcd value in bytes
+         or a
+         sbc hl,bc          ; calculate address of msb bcd
+         ld d,h
+         ld e,l
+         sbc hl,bc
+         ex de,hl           ; hl=address bcd value, de=start of decimal value
+         ld b,c             ; no. of bytes bcd
+         sla c              ; no. of bytes decimal (possibly 1 too high)
+         ld a,'0'
+         rld                ; shift bits 4-7 of (hl) into bit 0-3 of a
+         cp '0'             ; (hl) was > 9h?
+         jr nz,b2dexph      ; if yes, start with recording high digit
+         dec c              ; correct number of decimals
+         inc de             ; correct start address
+         jr b2dexpl         ; continue with converting low digit
+b2dexp:  rld                ; shift high digit (hl) into low digit of a
+b2dexph: ld (de),a          ; record resulting ascii-code
+         inc de
+b2dexpl: rld
+         ld (de),a
+         inc de
+         inc hl             ; next bcd-byte
+         djnz b2dexp        ; and go on to convert each bcd-byte into 2 ascii
+         sbc hl,bc          ; return with hl pointing to 1st decimal
+         ret
 
-B2DINV:  DS 8               ; space for 64-bit input value (LSB first)
-B2DBUF:  DS 20              ; space for 20 decimal digits
-B2DEND:  DS 2, '$';S 1      ; space for terminating 0
+b2dinv:  ds 8               ; space for 64-bit input value (lsb first)
+b2dbuf:  ds 20              ; space for 20 decimal digits
+b2dend:  ds 2, '$';s 1      ; space for terminating 0

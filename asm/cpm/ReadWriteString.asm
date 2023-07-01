@@ -6,11 +6,11 @@
   include "cpm.inc"
 
 main:
-  ld hl,prompt
-  call PRINT_STR
+  ld de,prompt
+  call write_string
 
-  ld hl,data
-  call GET_STR
+  ld de,data
+  call read_string
 
   ; Add a $ to the end of the string
   ld a,(data)
@@ -20,10 +20,11 @@ main:
   add hl,bc
   ld (hl),'$'
 
-  ld hl, data
-  inc hl
-  inc hl
-  call PRINT_STR
+  ex de, hl
+  ld de, data
+  inc de
+  inc de
+  call write_string
 
   ret
 
