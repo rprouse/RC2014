@@ -14,13 +14,19 @@ ASMFLAGS=-b -l -s -m -o=
 
 default: all
 
-all:setupdirs clean bin
+all: setupdirs clean bin clearsrc
 
-bin:$(BINS)
+bin: $(BINS)
 
 $(BINDIR)/%.com: %.asm
 # $(ASM) $< $(ASMFLAGS)$@
 	$(ASM) $(ASMFLAGS)$@ $<
+
+clearsrc:
+	@echo Cleaning the src directory
+	@mv *.lis $(BINDIR)
+	@mv *.sym $(BINDIR)
+	@$(RM) *.o
 
 # Initial project setup helper
 setupdirs:
@@ -28,9 +34,10 @@ setupdirs:
 	@if test -d $(BINDIR); then echo Re-using existing directory \'$(BINDIR)\' ; else mkdir $(BINDIR); fi
 
 clean:
-	$(RM) -r $(BINDIR)/*
-	$(RM) *.lis
-	$(RM) *.o
-	$(RM) *.lst
-	$(RM) *.sym
-	$(RM) .ticks_history.txt
+	@echo Cleaning previous build files
+	@$(RM) -r $(BINDIR)/*
+	@$(RM) *.lis
+	@$(RM) *.o
+	@$(RM) *.lst
+	@$(RM) *.sym
+	@$(RM) .ticks_history.txt
