@@ -20,8 +20,7 @@ main:
   cp space
   jp nz, open_file          ; If it is a space, no file was given on the cmdline
   ld de, usage
-  ld c, c_writestr
-  call bdos                 ; Display usage info
+  call write_string         ; Display usage info
   jp boot                   ; Warm boot CP/M
 
 open_file:
@@ -31,14 +30,13 @@ open_file:
   call bdos
 
   ; Check if the file was opened successfully
-  ld a, l
-  or a
-  jp z, file_opened_successfully
+  cp $FF                    ; FF in A indicates an error
+  jp nz, file_opened_successfully
 
   ; Handle error opening file
   ld de, err_open
-  ld c, c_writestr
-  call bdos
+  call write_string
+
   jp boot                   ; Warm boot CP/M
 
 file_opened_successfully:
@@ -54,22 +52,21 @@ file_opened_successfully:
 
   ; Successfully read 128 bytes, output it
   ld hl, dma
-  ld bc, 128
+  ld b, $80
 write_loop:
   ld a, (hl)
   inc hl
   cp subz                   ; Is it a SUB/Ctrl+Z char?
-  jp z, eof                 ; Stop output
+  jr z, eof                 ; Stop output
 
-  ld e, a
-  ld c, c_write
-  call bdos
+  call write_char
   djnz write_loop
+
+  jr file_opened_successfully ; Read the next 128 bytes
 
 read_error:
   ld de, err_read
-  ld c, c_writestr
-  call bdos
+  call write_string
 
 eof:
   jp boot                   ; Warm boot CP/M
