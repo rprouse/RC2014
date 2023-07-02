@@ -20,11 +20,11 @@ main:
   ld de, fcb2_msg
   call write_string         ; Write the FCB2 header
   ld hl, fcb2
-  ;call display_fcb          ; Display the second File Control Block
+  call display_fcb          ; Display the second File Control Block
 
   ld de, cmd_msg
   call write_string         ; Write the commandline header
-  ;call display_commandline  ; Display the command line tail
+  call display_commandline  ; Display the command line tail
 
   ; Warm boot CP/M
   jp boot
@@ -85,8 +85,8 @@ cmd_next:
 write_str_skip_space:
   ld a, (hl)                ; Load the next char of the string
   inc hl
-  ;cp space                  ; Is it a space
-  ;jr z, skip_space          ; Don't display spaces but continue to inc HL
+  cp space                  ; Is it a space
+  jr z, skip_space          ; Don't display spaces but continue to inc HL
   call write_char           ; Display the next char of the string
 skip_space:
   djnz write_str_skip_space
