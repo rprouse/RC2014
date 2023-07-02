@@ -45,7 +45,7 @@ dump_bytes:
 
   ld de, $FFF0              ; Subtract $0010 (2's compliment add)
   add hl, de
-  ld b, $F
+  ld b, $10
 
 dump_loop:
   ld a, (hl)
