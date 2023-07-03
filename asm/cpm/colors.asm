@@ -3,6 +3,8 @@
 
   jp main
 
+esc equ $1B
+
   include "cpm.inc"
 
 main:
@@ -16,7 +18,10 @@ loop:
   inc a
   djnz loop
 
+  ld de, reset     ; Reset the terminal
+  call write_string
   ret
 
-ansi: db $1B, "[38;5;0mHello world\r\n$"
+ansi: db esc, "[38;5;0mHello world\r\n$"
 color: equ ansi + 7
+reset: db esc, "[0m$"
