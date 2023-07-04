@@ -34,3 +34,7 @@ sjasmplus 8BitAdd.asm --nologo --outprefix=bin/ --lst --color=on --inc=./include
 ```sh
 z88dk-ticks -trace -d -mz80 -x bin/8BitAdd.map bin/8BitAdd.com
 ```
+
+```sh
+z80emu bin/8BitAdd.com
+```
