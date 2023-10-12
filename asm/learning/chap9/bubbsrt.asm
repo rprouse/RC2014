@@ -1,4 +1,4 @@
-; Quicksort a list of values in ascending order
+; Bubble sort a list of values in ascending order
 
   org $0100
   jp main
