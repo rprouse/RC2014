@@ -8,6 +8,7 @@ default:
 	@$(MAKE) -C chap07 $(MAKECMDGOALS)
 	@$(MAKE) -C chap08 $(MAKECMDGOALS)
 	@$(MAKE) -C chap09 $(MAKECMDGOALS)
+	@$(MAKE) -C chap10 $(MAKECMDGOALS)
 
 all:
 	@$(MAKE) -C chap04 $(MAKECMDGOALS) all
@@ -16,6 +17,7 @@ all:
 	@$(MAKE) -C chap07 $(MAKECMDGOALS) all
 	@$(MAKE) -C chap08 $(MAKECMDGOALS) all
 	@$(MAKE) -C chap09 $(MAKECMDGOALS) all
+	@$(MAKE) -C chap10 $(MAKECMDGOALS) all
 
 clean:
 	@$(MAKE) -C chap04 $(MAKECMDGOALS) clean
@@ -24,3 +26,4 @@ clean:
 	@$(MAKE) -C chap07 $(MAKECMDGOALS) clean
 	@$(MAKE) -C chap08 $(MAKECMDGOALS) clean
 	@$(MAKE) -C chap09 $(MAKECMDGOALS) clean
+	@$(MAKE) -C chap10 $(MAKECMDGOALS) clean
